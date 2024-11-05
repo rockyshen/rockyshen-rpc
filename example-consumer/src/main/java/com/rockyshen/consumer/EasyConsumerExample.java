@@ -1,7 +1,7 @@
 package com.rockyshen.consumer;
 
 import com.rockyshen.model.User;
-import com.rockyshen.proxy.ServiceProxyFactory;
+import com.rockyshen.core.proxy.ServiceProxyFactory;
 import com.rockyshen.service.UserService;
 
 /**
@@ -23,6 +23,7 @@ public class EasyConsumerExample {
         User newUser = null;
         try {
             UserService userService = ServiceProxyFactory.getProxy(UserService.class);
+            // 像调用本地方法一样，调用不同module里的方法
             newUser = userService.getUser(user);   // getUser()方法成功的话，会打印用户名字
         } catch (Exception e) {
             e.printStackTrace();

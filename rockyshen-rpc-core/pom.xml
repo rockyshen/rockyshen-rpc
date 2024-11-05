@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>example-provider</artifactId>
+    <artifactId>rockyshen-rpc-core</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -18,30 +18,9 @@
     </properties>
     <dependencies>
         <dependency>
-            <groupId>com.rockyshen</groupId>
-            <artifactId>rockyshen-rpc-core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>4.5.1</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.rockyshen</groupId>
-            <artifactId>example-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-            <version>5.8.8</version>
-        </dependency>
-
-
     </dependencies>
 </project>

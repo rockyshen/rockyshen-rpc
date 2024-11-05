@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>com.rockyshen</groupId>
-            <artifactId>rockyshen-rpc-easy</artifactId>
+            <artifactId>rockyshen-rpc-core</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
