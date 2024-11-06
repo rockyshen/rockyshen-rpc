@@ -9,4 +9,9 @@ import com.rockyshen.model.User;
  */
 public interface UserService {
     User getUser(User user);
+
+    // 接口内部默认实现方法，不用被实现类
+    default short getNumber(){
+        return 1;
+    }
 }

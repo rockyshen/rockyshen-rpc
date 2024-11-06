@@ -8,12 +8,14 @@ import lombok.extern.slf4j.Slf4j;
  * @author rockyshen
  * @date 2024/11/5 13:19
  * 手写RPC框架-进阶版
- * Rpc的主启动:
+ * Rpc的主启动:（没有main方法，就是让别人启动，自己提供服务）
  *  1、加载配置文件application.properties，映射到RpcConfig配置实体类上
  */
 @Slf4j
 public class RpcApplication {
-    private static volatile RpcConfig rpcConfig;     // 一个应用只有一个！
+    // TODO 因为要把host+port提供给ServiceProxy用，这里改为public对吗？
+    // 后面看鱼皮是怎么使用这里的配置对象上的配置信息的
+    public static volatile RpcConfig rpcConfig;     // 一个应用只有一个！
 
     /* 初始化，传入自定义配置
         1、从配置文件application.properties中读取配置信息，映射到RpcConfig上

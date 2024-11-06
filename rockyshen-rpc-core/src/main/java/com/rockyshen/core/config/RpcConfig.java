@@ -17,4 +17,14 @@ public class RpcConfig {
     private String serverHost = "localhost";
 
     private Integer serverPort = 8080;
+
+    // 模拟数据是否开启，默认不开启
+    private Boolean mock = false;
+
+    public boolean isMock(){
+        if(mock){
+            return true;
+        }
+        return false;
+    }
 }
