@@ -18,6 +18,7 @@ import java.lang.reflect.Method;
  * 利用实现InvocationHandler接口，实现JDK动态代理
  */
 public class ServiceProxy implements InvocationHandler {
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Serializer serializer = new JDKSerializer();

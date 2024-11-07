@@ -21,6 +21,9 @@ public class RpcConfig {
     // 模拟数据是否开启，默认不开启
     private Boolean mock = false;
 
+    // 配置文件中指定序列化器的key，默认JDK序列化器
+    private String serializer = "jdk";
+
     public boolean isMock(){
         if(mock){
             return true;

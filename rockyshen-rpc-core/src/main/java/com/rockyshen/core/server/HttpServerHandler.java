@@ -1,11 +1,14 @@
 package com.rockyshen.core.server;
 
 
+import com.rockyshen.core.RpcApplication;
+import com.rockyshen.core.config.RpcConfig;
 import com.rockyshen.core.model.RpcRequest;
 import com.rockyshen.core.model.RpcResponse;
 import com.rockyshen.core.register.LocalRegister;
 import com.rockyshen.core.serializer.JDKSerializer;
 import com.rockyshen.core.serializer.Serializer;
+import com.rockyshen.core.serializer.SerializerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
@@ -25,9 +28,11 @@ import java.lang.reflect.Method;
  */
 public class HttpServerHandler implements Handler<HttpServerRequest> {
 
+    final Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
+
     @Override
     public void handle(HttpServerRequest request) {
-        Serializer serializer = new JDKSerializer();
+//        Serializer serializer = new JDKSerializer();
         request.bodyHandler(body -> {
             byte[] bytes = body.getBytes();
             RpcRequest rpcRequest = null;

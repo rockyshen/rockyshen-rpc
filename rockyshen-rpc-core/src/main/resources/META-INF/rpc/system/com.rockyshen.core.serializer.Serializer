@@ -1,0 +1,2 @@
+json=com.rockyshen.core.serializer.JsonSerializer
+kryo=com.rockyshen.core.serializer.KryoSerializer

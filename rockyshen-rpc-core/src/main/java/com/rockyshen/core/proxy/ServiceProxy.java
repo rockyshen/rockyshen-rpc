@@ -2,10 +2,12 @@ package com.rockyshen.core.proxy;
 
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
+import com.rockyshen.core.RpcApplication;
 import com.rockyshen.core.model.RpcRequest;
 import com.rockyshen.core.model.RpcResponse;
 import com.rockyshen.core.serializer.JDKSerializer;
 import com.rockyshen.core.serializer.Serializer;
+import com.rockyshen.core.serializer.SerializerFactory;
 
 
 import java.io.IOException;
@@ -22,9 +24,12 @@ import static com.rockyshen.core.RpcApplication.rpcConfig;
  * 利用实现InvocationHandler接口，实现JDK动态代理
  */
 public class ServiceProxy implements InvocationHandler {
+
+    final Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Serializer serializer = new JDKSerializer();
+//        Serializer serializer = new JDKSerializer();
         // 建造者模式
         // 反射的运用
         RpcRequest rpcRequest = RpcRequest.builder()
