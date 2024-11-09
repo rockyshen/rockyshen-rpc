@@ -2,7 +2,6 @@ package com.rockyshen.core.spi;
 
 import cn.hutool.core.io.resource.ResourceUtil;
 import com.rockyshen.core.serializer.Serializer;
-import com.sun.org.apache.xerces.internal.dom.RangeExceptionImpl;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;

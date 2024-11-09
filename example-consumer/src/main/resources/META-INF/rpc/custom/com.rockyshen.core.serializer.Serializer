@@ -1,2 +1,1 @@
-jdk=com.rockyshen.core.serializer.JDKSerializer
-hessian=com.rockyshen.core.serializer.HessianSerializer
+my=com.rockyshen.consumer.serializer.MySerializer

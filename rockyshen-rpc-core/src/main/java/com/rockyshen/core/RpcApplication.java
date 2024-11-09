@@ -1,6 +1,9 @@
 package com.rockyshen.core;
 
+import com.rockyshen.core.config.RegistryConfig;
 import com.rockyshen.core.config.RpcConfig;
+import com.rockyshen.core.register.Registry;
+import com.rockyshen.core.register.RegistryFactory;
 import com.rockyshen.core.utils.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,26 +20,52 @@ public class RpcApplication {
     // 后面看鱼皮是怎么使用这里的配置对象上的配置信息的
     public static volatile RpcConfig rpcConfig;     // 一个应用只有一个！
 
+    // 我在RpcApplication中将registry声明为成员变量，在这里获取！
+    public static volatile Registry registry;
+
     /* 初始化，传入自定义配置
         1、从配置文件application.properties中读取配置信息，映射到RpcConfig上
         2、将rpcConfig这个映射完成的配置对象，传入doInit()中，真正执行初始化
      */
-    public static void init(){
-        RpcConfig newRpcConfig = null;
+    public static void init(RpcConfig newRpcConfig){
+        // 初始化rpc框架
+        rpcConfig = newRpcConfig;
+        log.info("core init, config = {}",newRpcConfig.toString());
+
+//        // 初始化注册中心
+        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
+        Registry newRegistry = RegistryFactory.getInstance(registryConfig.getRegistry());
+        // 基于实例化的一个空的registry，生成成员变量：client和kvClient
+        newRegistry.init(registryConfig);
+        registry = newRegistry;
+        log.info("registry init, config = {}",registryConfig.toString());
+    }
+
+    public static void init() {
+        RpcConfig newRpcConfig;
         try {
             // TODO prefix可以生成常量，这里没有传递env
             newRpcConfig = ConfigUtils.loadConfig(RpcConfig.class, "rpc");
         } catch (Exception e) {
-            newRpcConfig = new RpcConfig();  // RpcConfig中提供的默认值
+            // 配置加载失败，使用默认值
+            newRpcConfig = new RpcConfig();
         }
-        doInit(newRpcConfig);
+        init(newRpcConfig);
+
     }
 
     //
-    private static void doInit(RpcConfig newRpcConfig){
-        rpcConfig = newRpcConfig;
-        log.info("core init, config = {}",newRpcConfig.toString());
-    }
+//    private static void doInit(RpcConfig newRpcConfig){
+//        // 初始化rpc框架
+//        rpcConfig = newRpcConfig;
+//        log.info("core init, config = {}",newRpcConfig.toString());
+//
+//        // 初始化注册中心
+//        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
+//        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
+//        registry.init(registryConfig);
+//        log.info("registry init, config = {}",registryConfig.toString());
+//    }
 
     /* 双检索单例模式：确保多线程环境下，也只创建一个RpcConfig配置对象
         确保第一次创建时，多线程下时安全的
@@ -51,5 +80,10 @@ public class RpcApplication {
             }
         }
         return rpcConfig;
+    }
+
+    // 我在RpcApplication中将registry声明为成员变量，在这里获取！
+    public static Registry getRegistry(){
+        return registry;
     }
 }

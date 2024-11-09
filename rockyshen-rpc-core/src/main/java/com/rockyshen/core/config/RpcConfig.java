@@ -14,8 +14,8 @@ public class RpcConfig {
 
     private String version = "1.0";
 
+    // TODO 这里改为从etcd注册中心获取
     private String serverHost = "localhost";
-
     private Integer serverPort = 8080;
 
     // 模拟数据是否开启，默认不开启
@@ -23,6 +23,9 @@ public class RpcConfig {
 
     // 配置文件中指定序列化器的key，默认JDK序列化器
     private String serializer = "jdk";
+
+    // 注册中心的配置信息，另一个类RegistryConfig单独保存！
+    private RegistryConfig registryConfig = new RegistryConfig();
 
     public boolean isMock(){
         if(mock){

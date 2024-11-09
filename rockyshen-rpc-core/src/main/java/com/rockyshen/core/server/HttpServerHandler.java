@@ -37,6 +37,7 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
             byte[] bytes = body.getBytes();
             RpcRequest rpcRequest = null;
             try {
+                // TODO hessian反序列化后，这里报错！
                 rpcRequest = serializer.deserialize(bytes, RpcRequest.class);
             } catch (IOException e) {
                 throw new RuntimeException(e);
