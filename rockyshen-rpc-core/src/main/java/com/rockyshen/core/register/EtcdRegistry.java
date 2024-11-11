@@ -1,16 +1,22 @@
 package com.rockyshen.core.register;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.cron.CronUtil;
+import cn.hutool.cron.task.Task;
 import cn.hutool.json.JSONUtil;
 import com.rockyshen.core.config.RegistryConfig;
 import com.rockyshen.core.model.ServiceMetaInfo;
 import io.etcd.jetcd.*;
 import io.etcd.jetcd.kv.GetResponse;
+import io.etcd.jetcd.kv.PutResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -27,10 +33,15 @@ public class EtcdRegistry implements Registry{
     private Client client;
     private KV kvClient;
 
+    // 存放已经注册到etcd中的key；用于遍历心跳监测
+    private final Set<String> localRegistryNodeKeySet = new HashSet<>();
+
     @Override
     public void init(RegistryConfig registryConfig) {
         client = Client.builder().endpoints(registryConfig.getAddress()).connectTimeout(Duration.ofMillis(registryConfig.getTimeout())).build();
         kvClient = client.getKVClient();
+        // etcd注册中心，一初始化，就开始心跳监测
+        heartBeat();
     }
 
     @Override
@@ -45,11 +56,17 @@ public class EtcdRegistry implements Registry{
         PutOption putOption = PutOption.builder().withLeaseId(leaseId).build();
         kvClient.put(key,value,putOption);
 
+        // 将注册到etcd注册中心的key加入这个set容器，用于心跳监测
+        localRegistryNodeKeySet.add(registerKey);
     }
 
     @Override
     public void unRegister(ServiceMetaInfo serviceMetaInfo) {
-        kvClient.delete(ByteSequence.from(ETCD_ROOT_PATH + serviceMetaInfo.getServiceNodeKey(),StandardCharsets.UTF_8));
+        String registerKey = ETCD_ROOT_PATH + serviceMetaInfo.getServiceNodeKey();
+        kvClient.delete(ByteSequence.from(registerKey,StandardCharsets.UTF_8));
+
+        // 将注册到etcd注册中心的key移除set容器，不再心跳监测
+        localRegistryNodeKeySet.remove(registerKey);
     }
 
     @Override
@@ -82,17 +99,37 @@ public class EtcdRegistry implements Registry{
             client.close();
         }
     }
-//    public static void main(String[] args) throws ExecutionException, InterruptedException {
-//        Client client = Client.builder().endpoints("http://localhost:2379").build();
-//        KV kvClient = client.getKVClient();
-//        ByteSequence key = ByteSequence.from("test_key".getBytes());
-//        ByteSequence value = ByteSequence.from("test_value".getBytes());
-//
-//        kvClient.put(key,value).get();
-//
-//        // 异步
-//        CompletableFuture<GetResponse> getFuture = kvClient.get(key);
-//
-//        GetResponse getResponse = getFuture.get();
-//    }
+
+    // 心跳监测
+    @Override
+    public void heartBeat() {
+        CronUtil.schedule("*/10 * * * * *", new Task() {
+            @Override
+            public void execute() {
+                for(String key:localRegistryNodeKeySet){
+                    try {
+                        ByteSequence byteKey = ByteSequence.from(key, StandardCharsets.UTF_8);
+                        List<KeyValue> keyValues = kvClient.get(byteKey).get().getKvs();
+
+                        // 这个节点依据过期了，里面没有信息，被删掉了
+                        if(CollUtil.isEmpty(keyValues)){
+                            continue;
+                        }
+
+                        KeyValue keyValue = keyValues.get(0);
+                        String value = keyValue.getValue().toString(StandardCharsets.UTF_8);
+                        ServiceMetaInfo serviceMetaInfo = JSONUtil.toBean(value, ServiceMetaInfo.class);
+                        // 续签，就是重新用这个serviceMetaInfo，注册一下
+                        // TODO 用keepAlive()是不是也可以？
+                        register(serviceMetaInfo);
+                    } catch (Exception e) {
+                        throw new RuntimeException(key + "续签失败", e);
+                    }
+                }
+            }
+        });
+        CronUtil.setMatchSecond(true);   // 设置秒匹配兼容性
+        CronUtil.start();
+    }
+
 }

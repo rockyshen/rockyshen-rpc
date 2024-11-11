@@ -26,4 +26,7 @@ public interface Registry {
     // 销毁注册中心
     void destory();
 
+    // 心跳监测
+    void heartBeat();
+
 }

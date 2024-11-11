@@ -49,9 +49,11 @@ public class ServiceProxy implements InvocationHandler {
             // 完成：这里Provider提供者的vertx服务器启动路径写死了，后续要优化！  -> 从配置对象RpcConfig上动态读取
             RpcConfig rpcConfig = RpcApplication.getRpcConfig();
             Registry registry = RegistryFactory.getInstance(rpcConfig.getRegistryConfig().getRegistry());
+
             ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();
-            serviceMetaInfo.setServiceName(serviceName);
+            serviceMetaInfo.setServiceName(serviceName);   // 服务名，从你调用的对象反射得来！
             serviceMetaInfo.setServiceVersion("1.0");
+            // 基于你构造的serviceMetaInfo对象，去注册中心中服务发现，可以用的IP地址！
             List<ServiceMetaInfo> serviceMetaInfos = registry.serviceDiscovery(serviceMetaInfo.getServiceKey());
             if(CollUtil.isEmpty(serviceMetaInfos)){
                 throw new RuntimeException("暂无服务地址");
