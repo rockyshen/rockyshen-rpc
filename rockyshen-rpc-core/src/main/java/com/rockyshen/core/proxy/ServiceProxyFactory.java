@@ -13,11 +13,13 @@ import java.lang.reflect.Proxy;
 public class ServiceProxyFactory {
     public static <T> T getProxy(Class<T> serviceClass){
         // 如果配置对象中开启了mock，就需要返回mock代理类
+        // 如果mock开启，就不返回userServiceProxy对象了，拦截掉了
         if(RpcApplication.getRpcConfig().isMock()){
             return getMockProxy(serviceClass);
         }
 
-        // 如果mock开启，就不返回userServiceProxy对象了，拦截掉了
+        // 不开启mock，走正常的代理对象
+        // TODO 这里跑不通，proxy是报错！
         Object o = Proxy.newProxyInstance(serviceClass.getClassLoader(), new Class[]{serviceClass}, new ServiceProxy());
         return (T) o;
     }

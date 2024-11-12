@@ -1,7 +1,9 @@
 package com.rockyshen.consumer;
 
+import com.rockyshen.core.RpcApplication;
 import com.rockyshen.core.config.RpcConfig;
 import com.rockyshen.core.proxy.ServiceProxyFactory;
+import com.rockyshen.core.register.Registry;
 import com.rockyshen.core.utils.ConfigUtils;
 import com.rockyshen.model.User;
 import com.rockyshen.service.UserService;
@@ -20,23 +22,30 @@ public class CoreConsumerExample {
 //        RpcConfig rpc = ConfigUtils.loadConfig(RpcConfig.class, "rpc");
 //        System.out.println(rpc);
 
+        // 不管是consumer还是provider，都要执行RpcApplication的初始化
+        RpcApplication.init();
+
         User user = new User();
         user.setName("rockyshen");
 
         UserService userService = ServiceProxyFactory.getProxy(UserService.class);
 
-        User newUser = userService.getUser(user);
+        User newUser1 = userService.getUser(user);     // 第一次查注册中心
+        User newUser2 = userService.getUser(user);    // 第二次查缓存
+        User newUser3 = userService.getUser(user);     // 第三次下线provider
+
+
 
         // 如果mock开启，就不返回userServiceProxy对象了，拦截掉了
-        if(newUser != null){
-            System.out.println(newUser.getName());
+        if(newUser1 != null){
+            System.out.println(newUser1.getName());
         }else{
             System.out.println("未获取到ServiceProxy对象，user为空");
         }
 
         // 此处如果打印1，表示走了MockServiceProxy；如果打印0，表示走了userService自己的方法
 //        short number = userService.getNumber();
-        System.out.println(userService.getNumber());
+//        System.out.println(userService.getNumber());
 
     }
 }

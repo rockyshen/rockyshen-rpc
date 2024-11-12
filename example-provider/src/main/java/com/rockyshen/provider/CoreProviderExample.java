@@ -32,13 +32,13 @@ public class CoreProviderExample {
 
         // 加入注册中心
         RpcConfig rpcConfig = RpcApplication.getRpcConfig();
-//        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
-//        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
-//        registry.init(registryConfig);
-// 从RegistryFactory获取key=etcd的注册中心实例
-        // 这里有个问题啊！按鱼皮的写法，从RegistryFactory出来的register是没有init的，所以没有client和KVClient；
-        Registry registry = RpcApplication.getRegistry();     // 我在RpcApplication中将registry声明为成员变量，在这里获取！
-
+        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
+        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
+        /** provider端，如果显式调用registry.init的话，就会覆盖RpcApplication.init的
+         * 重新调用的话，RegistryFactory会在第一次init时生成的对象，存在instanceCache这个Map中；
+         * 第二次直接取，对象是同一个！
+         */
+        registry.init(registryConfig);
         ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();
         serviceMetaInfo.setServiceName(serviceName);
         serviceMetaInfo.setServiceHost(rpcConfig.getServerHost());

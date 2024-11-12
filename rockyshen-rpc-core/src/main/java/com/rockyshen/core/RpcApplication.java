@@ -18,14 +18,19 @@ import lombok.extern.slf4j.Slf4j;
 public class RpcApplication {
     // TODO 因为要把host+port提供给ServiceProxy用，这里改为public对吗？
     // 后面看鱼皮是怎么使用这里的配置对象上的配置信息的
-    public static volatile RpcConfig rpcConfig;     // 一个应用只有一个！
+    private static volatile RpcConfig rpcConfig;     // 一个应用只有一个！
 
     // 我在RpcApplication中将registry声明为成员变量，在这里获取！
-    public static volatile Registry registry;
+    /**
+     * 由于RpcApplication需要在consumer 和 provider同时init()，需要确保rpcConfig和registry为同一个
+     * 必须声明为static!
+     */
+//    public static volatile Registry registry;     // 一个应用只有一个
 
     /* 初始化，传入自定义配置
         1、从配置文件application.properties中读取配置信息，映射到RpcConfig上
         2、将rpcConfig这个映射完成的配置对象，传入doInit()中，真正执行初始化
+        TODO 思考：如果将registry返回出去，能解决provider的问题，但是解决不了consumer的问题！
      */
     public static void init(RpcConfig newRpcConfig){
         // 初始化rpc框架
@@ -34,24 +39,26 @@ public class RpcApplication {
 
 //        // 初始化注册中心
         RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
-        Registry newRegistry = RegistryFactory.getInstance(registryConfig.getRegistry());
+        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
         // 基于实例化的一个空的registry，生成成员变量：client和kvClient
-        newRegistry.init(registryConfig);
-        registry = newRegistry;
+        registry.init(registryConfig);     // consumer端，不显式的调用registry.init的话，就在这里初始化注册中心！
+        registry.heartBeat();
         log.info("registry init, config = {}",registryConfig.toString());
+
+        Runtime.getRuntime().addShutdownHook(new Thread(registry::destory));
     }
 
+    // 读取配置文件。生成newRpcConfig
     public static void init() {
         RpcConfig newRpcConfig;
         try {
-            // TODO prefix可以生成常量，这里没有传递env
+            // prefix可以生成常量，这里没有传递env
             newRpcConfig = ConfigUtils.loadConfig(RpcConfig.class, "rpc");
         } catch (Exception e) {
             // 配置加载失败，使用默认值
             newRpcConfig = new RpcConfig();
         }
         init(newRpcConfig);
-
     }
 
     //
@@ -83,7 +90,7 @@ public class RpcApplication {
     }
 
     // 我在RpcApplication中将registry声明为成员变量，在这里获取！
-    public static Registry getRegistry(){
-        return registry;
-    }
+//    public static Registry getRegistry(){
+//        return registry;
+//    }
 }

@@ -121,21 +121,17 @@ public class SpiLoader {
         }
 
         Class<?> implClass = implClassMap.get(key);
-
-        // 先看下缓存中有没有
         if(!instanceCache.containsKey(implClass.getName())){
             try {
-                // 缓存中没有，放进去，并返回
+                // 实例缓存中加载指定类型的实例
                 instanceCache.put(implClass.getName(),implClass.newInstance());   // newInstance不推荐使用
                 log.info("成功加载Serializer接口的实现类，为：{}",implClass.getName());
-                return (T) implClass.newInstance();
             } catch (InstantiationException | IllegalAccessException e) {
                 String errorMsg = String.format("%s 类实例化失败",implClass);
                 throw new RuntimeException(errorMsg,e);
             }
-        }else{
-            // 缓存中有，直接返回
-            return (T) instanceCache.get(implClass.getName());
         }
+        // 缓存中有，直接返回
+        return (T) instanceCache.get(implClass.getName());
     }
 }

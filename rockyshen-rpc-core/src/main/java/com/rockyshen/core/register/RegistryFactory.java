@@ -12,11 +12,9 @@ public class RegistryFactory {
         SpiLoader.load(Registry.class);   // SPI机制，加载接口！
     }
 
-    private static final Registry DEFAULT_REGISTRY = new EtcdRegistry();
-
     public static Registry getInstance(String key){
-        Registry registry = SpiLoader.getInstance(Registry.class, key);
-        return registry;
+        return SpiLoader.getInstance(Registry.class, key);
     }
 
+    private static final Registry DEFAULT_REGISTRY = new EtcdRegistry();
 }

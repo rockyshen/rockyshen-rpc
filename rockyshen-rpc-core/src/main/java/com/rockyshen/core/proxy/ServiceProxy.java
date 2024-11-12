@@ -29,11 +29,12 @@ import java.util.List;
  */
 public class ServiceProxy implements InvocationHandler {
 
-    final Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
-
+    // 调用代理
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-//        Serializer serializer = new JDKSerializer();
+        // 从序列化器工厂获取一个序列化器对象！
+        final Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
+
         String serviceName = method.getDeclaringClass().getName();
         // 建造者模式
         // 反射的运用
@@ -70,4 +71,5 @@ public class ServiceProxy implements InvocationHandler {
         }
         return null;
     }
+
 }

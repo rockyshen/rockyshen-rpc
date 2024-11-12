@@ -20,7 +20,9 @@ public class SerializerFactory {
 //        KEY_SERIALIZER_MAP.put("hessian",new HessianSerializer());
 //    }
 
-    // 加载Serializer接口下的所有实现类，到loaderMap中
+    /** 使用静态代码块，在工厂首次加载时，就会调用SpiLoader把META-INF中指定的所有实现类都加载好
+     * 之后通过调用getInstance()获取指定实现类的对象！
+     */
     static {
         SpiLoader.load(Serializer.class);
     }
@@ -36,6 +38,5 @@ public class SerializerFactory {
 
     // 默认是JDK序列化器
     private static final Serializer DEFAULT_SERIALIZER = new JDKSerializer();
-
 
 }

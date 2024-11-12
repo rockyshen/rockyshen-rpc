@@ -1,6 +1,7 @@
 package com.rockyshen.core.register;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ConcurrentHashSet;
 import cn.hutool.cron.CronUtil;
 import cn.hutool.cron.task.Task;
 import cn.hutool.json.JSONUtil;
@@ -11,6 +12,7 @@ import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.kv.PutResponse;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.watch.WatchEvent;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -36,12 +38,22 @@ public class EtcdRegistry implements Registry{
     // 存放已经注册到etcd中的key；用于遍历心跳监测
     private final Set<String> localRegistryNodeKeySet = new HashSet<>();
 
+    // 服务发现的结果，存放到这个缓存中，直接从这里读取；
+    private final RegistryServiceCache registryServiceCache = new RegistryServiceCache();
+
+    // 存放正在监听的key的Set集合
+    private final Set<String> watchingKeySet = new ConcurrentHashSet<>();
+
     @Override
     public void init(RegistryConfig registryConfig) {
         client = Client.builder().endpoints(registryConfig.getAddress()).connectTimeout(Duration.ofMillis(registryConfig.getTimeout())).build();
         kvClient = client.getKVClient();
         // etcd注册中心，一初始化，就开始心跳监测
-        heartBeat();
+        /**
+         * 搞了半天，RpcApplication.init() 与 registry.init()导致client和kvClient为null的问题，核心是初始化顺序的问题
+         * RpcApplication.init -> registry.init()和registry.heartBeat()应该解耦！
+         */
+//        heartBeat();
     }
 
     @Override
@@ -71,17 +83,27 @@ public class EtcdRegistry implements Registry{
 
     @Override
     public List<ServiceMetaInfo> serviceDiscovery(String serviceKey) {
-        String searchPrefix = ETCD_ROOT_PATH + serviceKey + "/";    // 前缀搜索
+        // 服务发现，先从缓存中查一下
+        List<ServiceMetaInfo> cachedServiceMetaInfoList = registryServiceCache.readCache();
+        if(cachedServiceMetaInfoList != null){
+            return cachedServiceMetaInfoList;
+        }
 
+        String searchPrefix = ETCD_ROOT_PATH + serviceKey + "/";    // 前缀搜索
         GetOption getOption = GetOption.builder().isPrefix(true).build();
         try {
+            // todo 这里kvClient为什么是null，通过debug发现，此时成员变量
             List<KeyValue> keyValues = kvClient.get(ByteSequence.from(searchPrefix, StandardCharsets.UTF_8), getOption).get().getKvs();
 
-            List<ServiceMetaInfo> serviceMetaInfos = keyValues.stream().map(keyValue -> {
+            List<ServiceMetaInfo> serviceMetaInfoList = keyValues.stream().map(keyValue -> {
+                String key = keyValue.getKey().toString(StandardCharsets.UTF_8);
                 String value = keyValue.getValue().toString(StandardCharsets.UTF_8);
+                watch(key);  // 监视这个key，一旦被删除，就执行清除缓存
                 return JSONUtil.toBean(value, ServiceMetaInfo.class);
             }).collect(Collectors.toList());
-            return serviceMetaInfos;
+            // 写入缓存
+            registryServiceCache.writeCache(serviceMetaInfoList);
+            return serviceMetaInfoList;
 
         } catch (Exception e) {
             throw new RuntimeException("获取服务列表失败",e);
@@ -90,7 +112,16 @@ public class EtcdRegistry implements Registry{
 
     @Override
     public void destory() {
-        System.out.println("当前节点下线");
+        System.out.println("当前节点下线!");
+
+        for(String key:localRegistryNodeKeySet){
+            try {
+                kvClient.delete(ByteSequence.from(key,StandardCharsets.UTF_8)).get();
+            } catch (Exception e) {
+                throw new RuntimeException(key+"节点下线失败！");
+            }
+        }
+
         if(kvClient != null){
             kvClient.close();
         }
@@ -130,6 +161,28 @@ public class EtcdRegistry implements Registry{
         });
         CronUtil.setMatchSecond(true);   // 设置秒匹配兼容性
         CronUtil.start();
+    }
+
+    @Override
+    public void watch(String serviceNodeKey) {
+        Watch watchClient = client.getWatchClient();
+        boolean newWatch = watchingKeySet.add(serviceNodeKey);
+        // 加入set成功，之前没有监视过
+        if(newWatch){
+            watchClient.watch(ByteSequence.from(serviceNodeKey,StandardCharsets.UTF_8),watchResponse -> {
+                List<WatchEvent> events = watchResponse.getEvents();
+                for(WatchEvent event : events){
+                    switch (event.getEventType()){
+                        case DELETE:
+                            registryServiceCache.clearCache();
+                            break;
+                        case PUT:
+                        default:
+                            break;
+                    }
+                }
+            });
+        }
     }
 
 }
