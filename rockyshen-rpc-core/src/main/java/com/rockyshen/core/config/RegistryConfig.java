@@ -19,5 +19,5 @@ public class RegistryConfig {
     private String password;
 
     // 连接注册中心的超时时间
-    private Long timeout = 10000L;
+    private Long timeout = 10000L;    // Math.toIntExact()
 }

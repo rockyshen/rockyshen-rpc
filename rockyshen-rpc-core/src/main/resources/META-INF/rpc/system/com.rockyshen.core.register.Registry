@@ -1,1 +1,2 @@
 etcd=com.rockyshen.core.register.EtcdRegistry
+zookeeper=com.rockyshen.core.register.ZookeeperRegistry
