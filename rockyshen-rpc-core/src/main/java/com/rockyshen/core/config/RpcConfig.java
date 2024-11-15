@@ -27,6 +27,9 @@ public class RpcConfig {
     // 注册中心的配置信息，另一个类RegistryConfig单独保存！
     private RegistryConfig registryConfig = new RegistryConfig();
 
+    // 负载均衡器
+    private String loadBalancer = "roundRobin";
+
     public boolean isMock(){
         if(mock){
             return true;

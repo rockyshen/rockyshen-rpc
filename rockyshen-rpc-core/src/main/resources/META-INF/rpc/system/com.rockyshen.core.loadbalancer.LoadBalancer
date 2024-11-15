@@ -1,0 +1,3 @@
+roundRobin=com.rockyshen.core.loadbalancer.RoundRobinLoadBalancer
+random=com.rockyshen.core.loadbalancer.RandomLoadBalancer
+consistentHash=com.rockyshen.core.loadbalancer.ConsistentHashLoadBalancer

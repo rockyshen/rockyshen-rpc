@@ -38,7 +38,7 @@ public class TcpBufferHandlerWrapper implements Handler<Buffer> {
             public void handle(Buffer buffer) {
                 if(-1 == size){
                     size = buffer.getInt(13);  // index=13 正好记录的时body的长度
-                    parser.fixedSizeMode(size);
+                    parser.fixedSizeMode(size);  // 读取头信息中的body长度，然后修改定长，去读body
                     resultBuffer.appendBuffer(buffer);  // 写入头信息
                 }else {
                     resultBuffer.appendBuffer(buffer);  // 写入体信息
