@@ -56,6 +56,8 @@ public class VertxTcpClient {
             // 下面是客户端与服务端连上之后的处理逻辑
             if (!result.succeeded()) {
                 System.out.println("Failed to connect to TCP Server");
+                // 抛出异常，让重试机制生效！
+                responseFuture.completeExceptionally(new RuntimeException("Failed to connect to TCP Server"));
                 return;
             }
             NetSocket socket = result.result();

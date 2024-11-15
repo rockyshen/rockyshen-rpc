@@ -30,6 +30,9 @@ public class RpcConfig {
     // 负载均衡器
     private String loadBalancer = "roundRobin";
 
+    // 重试策略
+    private String retryStrategy = "no";
+
     public boolean isMock(){
         if(mock){
             return true;

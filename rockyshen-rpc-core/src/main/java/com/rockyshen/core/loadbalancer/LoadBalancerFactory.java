@@ -12,11 +12,11 @@ import com.rockyshen.core.spi.SpiLoader;
 public class LoadBalancerFactory {
 
     static {
-        SpiLoader.load(Registry.class);   // SPI机制，加载接口！
+        SpiLoader.load(LoadBalancer.class);   // SPI机制，加载接口！
     }
 
     public static Registry getInstance(String key){
-        return SpiLoader.getInstance(Registry.class, key);
+        return SpiLoader.getInstance(LoadBalancer.class, key);
     }
 
     private static final LoadBalancer DEFAULT_LOAD_BALANCER = new RoundRobinLoadBalancer();

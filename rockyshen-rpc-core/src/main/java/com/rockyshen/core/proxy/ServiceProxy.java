@@ -6,6 +6,8 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.rockyshen.core.RpcApplication;
 import com.rockyshen.core.config.RpcConfig;
+import com.rockyshen.core.fault.retry.RetryStrategy;
+import com.rockyshen.core.fault.retry.RetryStrategyFactory;
 import com.rockyshen.core.model.RpcRequest;
 import com.rockyshen.core.model.RpcResponse;
 import com.rockyshen.core.model.ServiceMetaInfo;
@@ -56,7 +58,6 @@ public class ServiceProxy implements InvocationHandler {
 
         try {
             byte[] serialized = serializer.serialize(rpcRequest);
-            // 完成：这里Provider提供者的vertx服务器启动路径写死了，后续要优化！  -> 从配置对象RpcConfig上动态读取
             RpcConfig rpcConfig = RpcApplication.getRpcConfig();
             Registry registry = RegistryFactory.getInstance(rpcConfig.getRegistryConfig().getRegistry());
 
@@ -76,7 +77,11 @@ public class ServiceProxy implements InvocationHandler {
 //            byte[] bytes = httpResponse.bodyBytes();
 
             // V2，基于TCP、自定义的协议发送代理服务，抽取到VertxTcpClient中
-            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
+            // 增加重试机制
+            RetryStrategy retryStrategy =RetryStrategyFactory.getInstance(rpcConfig.getRetryStrategy());
+            RpcResponse rpcResponse = retryStrategy.doRetry( ()->
+                VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo)
+            );
             return rpcResponse.getData();
 
         } catch (IOException e) {

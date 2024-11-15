@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +60,7 @@ public class EtcdRegistry implements Registry{
     @Override
     public void register(ServiceMetaInfo serviceMetaInfo) throws ExecutionException, InterruptedException {
         Lease leaseClient = client.getLeaseClient();
+        // 30秒的租约
         long leaseId = leaseClient.grant(30).get().getID();
 
         String registerKey = ETCD_ROOT_PATH + serviceMetaInfo.getServiceNodeKey();
@@ -92,7 +94,6 @@ public class EtcdRegistry implements Registry{
         String searchPrefix = ETCD_ROOT_PATH + serviceKey + "/";    // 前缀搜索
         GetOption getOption = GetOption.builder().isPrefix(true).build();
         try {
-            // todo 这里kvClient为什么是null，通过debug发现，此时成员变量
             List<KeyValue> keyValues = kvClient.get(ByteSequence.from(searchPrefix, StandardCharsets.UTF_8), getOption).get().getKvs();
 
             List<ServiceMetaInfo> serviceMetaInfoList = keyValues.stream().map(keyValue -> {

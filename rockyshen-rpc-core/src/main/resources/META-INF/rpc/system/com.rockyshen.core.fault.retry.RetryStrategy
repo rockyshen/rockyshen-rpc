@@ -1,0 +1,2 @@
+no=com.rockyshen.core.fault.retry.NoRetryStrategy
+fixedInterval=com.rockyshen.core.fault.retry.FixedIntervalRetryStrategy
