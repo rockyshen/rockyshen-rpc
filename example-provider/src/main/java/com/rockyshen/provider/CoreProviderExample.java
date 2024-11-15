@@ -9,6 +9,7 @@ import com.rockyshen.core.register.Registry;
 import com.rockyshen.core.register.RegistryFactory;
 import com.rockyshen.core.server.HttpServer;
 import com.rockyshen.core.server.VertxHttpServer;
+import com.rockyshen.core.server.tcp.VertxTcpServer;
 import com.rockyshen.provider.impl.UserServiceImpl;
 import com.rockyshen.service.UserService;
 
@@ -51,10 +52,13 @@ public class CoreProviderExample {
             throw new RuntimeException(e);
         }
 
-        // 启动web服务器
-        HttpServer httpServer = new VertxHttpServer();
-
+        // V1 基于Http启动web服务器
+//        HttpServer httpServer = new VertxHttpServer();
         // 端口从RpcConfig对象上动态取！
-        httpServer.doStart(rpcConfig.getServerPort());
+//        httpServer.doStart(rpcConfig.getServerPort());
+
+        // V2 基于TCP，启动TCP服务端
+        VertxTcpServer vertxTcpServer = new VertxTcpServer();
+        vertxTcpServer.doStart(rpcConfig.getServerPort());
     }
 }

@@ -20,10 +20,12 @@ public class JDKSerializer implements Serializer{
 
     @Override
     public <T> T deserialize(byte[] bytes, Class<T> type) throws IOException {
+        System.out.println(type);    // 看一下是什么类型！
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         ObjectInputStream ois = new ObjectInputStream(byteArrayInputStream);
         try {
-            return (T)ois.readObject();           // 反序列化的对象，返回出去，类型强转
+            T readObject = (T)ois.readObject();
+            return readObject;           // 反序列化的对象，返回出去，类型强转
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }finally {

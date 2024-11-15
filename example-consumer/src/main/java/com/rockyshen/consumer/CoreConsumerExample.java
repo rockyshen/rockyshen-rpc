@@ -30,15 +30,14 @@ public class CoreConsumerExample {
 
         UserService userService = ServiceProxyFactory.getProxy(UserService.class);
 
-        User newUser1 = userService.getUser(user);     // 第一次查注册中心
-        User newUser2 = userService.getUser(user);    // 第二次查缓存
-        User newUser3 = userService.getUser(user);     // 第三次下线provider
-
+        User newUser = userService.getUser(user);     // 第一次查注册中心
+//        User newUser2 = userService.getUser(user);    // 第二次查缓存
+//        User newUser3 = userService.getUser(user);     // 第三次下线provider
 
 
         // 如果mock开启，就不返回userServiceProxy对象了，拦截掉了
-        if(newUser1 != null){
-            System.out.println(newUser1.getName());
+        if(newUser != null){
+            System.out.println(newUser.getName());
         }else{
             System.out.println("未获取到ServiceProxy对象，user为空");
         }

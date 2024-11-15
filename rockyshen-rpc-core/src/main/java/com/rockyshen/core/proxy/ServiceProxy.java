@@ -1,6 +1,7 @@
 package com.rockyshen.core.proxy;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.rockyshen.core.RpcApplication;
@@ -8,17 +9,25 @@ import com.rockyshen.core.config.RpcConfig;
 import com.rockyshen.core.model.RpcRequest;
 import com.rockyshen.core.model.RpcResponse;
 import com.rockyshen.core.model.ServiceMetaInfo;
+import com.rockyshen.core.protocal.*;
 import com.rockyshen.core.register.Registry;
 import com.rockyshen.core.register.RegistryFactory;
 import com.rockyshen.core.serializer.JDKSerializer;
 import com.rockyshen.core.serializer.Serializer;
 import com.rockyshen.core.serializer.SerializerFactory;
+import com.rockyshen.core.server.tcp.VertxTcpClient;
+import io.netty.util.concurrent.CompleteFuture;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetClient;
+import io.vertx.core.net.NetSocket;
 
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author rockyshen
@@ -59,17 +68,19 @@ public class ServiceProxy implements InvocationHandler {
             if(CollUtil.isEmpty(serviceMetaInfos)){
                 throw new RuntimeException("暂无服务地址");
             }
+            // 服务发现，得到的serviceMetaInfo实例
             ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfos.get(0);
-            // 从注册中心中选到的服务地址
-            HttpResponse httpResponse = HttpRequest.post(selectedServiceMetaInfo.getServiceAddress()).body(serialized).execute();
-            byte[] bytes = httpResponse.bodyBytes();
-            RpcResponse rpcResponse = serializer.deserialize(bytes, RpcResponse.class);
-            Object result = rpcResponse.getData();
-            return result;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
+            // V1，基于HTTP发送代理服务,hutool的Http客户端
+//            HttpResponse httpResponse = HttpRequest.post(selectedServiceMetaInfo.getServiceAddress()).body(serialized).execute();
+//            byte[] bytes = httpResponse.bodyBytes();
+
+            // V2，基于TCP、自定义的协议发送代理服务，抽取到VertxTcpClient中
+            RpcResponse rpcResponse = VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo);
+            return rpcResponse.getData();
+
+        } catch (IOException e) {
+            throw new RuntimeException("调用失败");
+        }
+    }
 }

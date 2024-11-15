@@ -32,7 +32,6 @@ public class ServiceProxy implements InvocationHandler {
 
         try {
             byte[] serialized = serializer.serialize(rpcRequest);
-            // TODO:这里Provider提供者的vertx服务器启动路径写死了，后续要优化！
             HttpResponse httpResponse = HttpRequest.post("http://localhost:8080").body(serialized).execute();
             byte[] bytes = httpResponse.bodyBytes();
             RpcResponse rpcResponse = serializer.deserialize(bytes, RpcResponse.class);

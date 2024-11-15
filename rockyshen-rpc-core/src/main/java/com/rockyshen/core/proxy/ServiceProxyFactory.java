@@ -19,7 +19,6 @@ public class ServiceProxyFactory {
         }
 
         // 不开启mock，走正常的代理对象
-        // TODO 这里跑不通，proxy是报错！
         Object o = Proxy.newProxyInstance(serviceClass.getClassLoader(), new Class[]{serviceClass}, new ServiceProxy());
         return (T) o;
     }

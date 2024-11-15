@@ -16,12 +16,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class RpcApplication {
-    // TODO 因为要把host+port提供给ServiceProxy用，这里改为public对吗？
-    // 后面看鱼皮是怎么使用这里的配置对象上的配置信息的
     private static volatile RpcConfig rpcConfig;     // 一个应用只有一个！
 
-    // 我在RpcApplication中将registry声明为成员变量，在这里获取！
     /**
+     * 我在RpcApplication中将registry声明为成员变量，在这里获取！
      * 由于RpcApplication需要在consumer 和 provider同时init()，需要确保rpcConfig和registry为同一个
      * 必须声明为static!
      */
@@ -30,7 +28,6 @@ public class RpcApplication {
     /* 初始化，传入自定义配置
         1、从配置文件application.properties中读取配置信息，映射到RpcConfig上
         2、将rpcConfig这个映射完成的配置对象，传入doInit()中，真正执行初始化
-        TODO 思考：如果将registry返回出去，能解决provider的问题，但是解决不了consumer的问题！
      */
     public static void init(RpcConfig newRpcConfig){
         // 初始化rpc框架
@@ -60,19 +57,6 @@ public class RpcApplication {
         }
         init(newRpcConfig);
     }
-
-    //
-//    private static void doInit(RpcConfig newRpcConfig){
-//        // 初始化rpc框架
-//        rpcConfig = newRpcConfig;
-//        log.info("core init, config = {}",newRpcConfig.toString());
-//
-//        // 初始化注册中心
-//        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
-//        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
-//        registry.init(registryConfig);
-//        log.info("registry init, config = {}",registryConfig.toString());
-//    }
 
     /* 双检索单例模式：确保多线程环境下，也只创建一个RpcConfig配置对象
         确保第一次创建时，多线程下时安全的
