@@ -54,7 +54,7 @@ public class EtcdRegistry implements Registry{
          * 搞了半天，RpcApplication.init() 与 registry.init()导致client和kvClient为null的问题，核心是初始化顺序的问题
          * RpcApplication.init -> registry.init()和registry.heartBeat()应该解耦！
          */
-//        heartBeat();
+        heartBeat();
     }
 
     @Override
@@ -113,11 +113,10 @@ public class EtcdRegistry implements Registry{
 
     @Override
     public void destory() {
-        System.out.println("当前节点下线!");
-
+//        System.out.println("当前节点下线!");
         for(String key:localRegistryNodeKeySet){
             try {
-//                kvClient.delete(ByteSequence.from(key,StandardCharsets.UTF_8)).get();
+                kvClient.delete(ByteSequence.from(key,StandardCharsets.UTF_8)).get();
             } catch (Exception e) {
                 throw new RuntimeException(key+"节点下线失败！");
             }

@@ -23,15 +23,17 @@ public class RpcProviderBootstrap implements BeanPostProcessor {
         Class<?> beanClass = bean.getClass();   // 这个beanClass就是加载的类
         RpcService rpcService = beanClass.getAnnotation(RpcService.class);  // 找到加了@RpcService注解的那个类！
         if(rpcService != null){
-            Class<?> interfaceClass = rpcService.interfaceClass();
+            Class<?> interfaceClass = rpcService.interfaceClass();   // 从@rpcService注解上获得接口的clazz对象
             if(interfaceClass == void.class){
                 interfaceClass = beanClass.getInterfaces()[0];
             }
             String serviceName = interfaceClass.getName();
             String serviceVersion = rpcService.serviceVersion();
-            LocalRegister.register(serviceName,beanClass);
+            // 1.本地注册
+            LocalRegister.register(serviceName,beanClass);   // beanClass就是接口实现类！
 
             final RpcConfig rpcConfig = RpcApplication.getRpcConfig();
+            // 2.注册中心注册
             RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
             Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
             ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();

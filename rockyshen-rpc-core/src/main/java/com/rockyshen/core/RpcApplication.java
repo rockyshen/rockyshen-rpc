@@ -25,7 +25,7 @@ public class RpcApplication {
      */
 //    public static volatile Registry registry;     // 一个应用只有一个
 
-    /* 初始化，传入自定义配置
+    /* Step2：初始化，传入自定义配置
         1、从配置文件application.properties中读取配置信息，映射到RpcConfig上
         2、将rpcConfig这个映射完成的配置对象，传入doInit()中，真正执行初始化
      */
@@ -33,19 +33,18 @@ public class RpcApplication {
         // 初始化rpc框架
         rpcConfig = newRpcConfig;
         log.info("core init, config = {}",newRpcConfig.toString());
-
-//        // 初始化注册中心
+        // 初始化注册中心
         RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
         Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
         // 基于实例化的一个空的registry，生成成员变量：client和kvClient
         registry.init(registryConfig);     // consumer端，不显式的调用registry.init的话，就在这里初始化注册中心！
-        registry.heartBeat();
+//        registry.heartBeat();
         log.info("registry init, config = {}",registryConfig.toString());
-
+        // 创建shutdown钩子，JVM关闭前，触发此方法
         Runtime.getRuntime().addShutdownHook(new Thread(registry::destory));
     }
 
-    // 读取配置文件。生成newRpcConfig
+    // Step1:读取配置文件。生成newRpcConfig
     public static void init() {
         RpcConfig newRpcConfig;
         try {

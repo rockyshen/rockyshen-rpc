@@ -1,6 +1,8 @@
 package com.rockyshen.rockyshenrpcspringbootstarter.annotation;
 
+import com.rockyshen.rockyshenrpcspringbootstarter.bootstrap.RpcConsumerBootstrap;
 import com.rockyshen.rockyshenrpcspringbootstarter.bootstrap.RpcInitBootstrap;
+import com.rockyshen.rockyshenrpcspringbootstarter.bootstrap.RpcProviderBootstrap;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.ElementType;
@@ -18,7 +20,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import({RpcInitBootstrap.class, RpcService.class, RpcReference.class})   // 将多个配置类，汇总到一个中
+@Import({RpcInitBootstrap.class, RpcConsumerBootstrap.class, RpcProviderBootstrap.class})   // 将多个配置类，汇总到一个中
 public @interface EnableRpc {
     boolean needServer() default true;  // needServer表示是否需要启动web服务器，provider需要，consumer不需要
 }
