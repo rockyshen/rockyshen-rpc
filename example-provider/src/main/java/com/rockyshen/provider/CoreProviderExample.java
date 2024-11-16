@@ -1,9 +1,11 @@
 package com.rockyshen.provider;
 
 import com.rockyshen.core.RpcApplication;
+import com.rockyshen.core.bootstrap.ProviderBootstrap;
 import com.rockyshen.core.config.RegistryConfig;
 import com.rockyshen.core.config.RpcConfig;
 import com.rockyshen.core.model.ServiceMetaInfo;
+import com.rockyshen.core.model.ServiceRegisterInfo;
 import com.rockyshen.core.register.LocalRegister;
 import com.rockyshen.core.register.Registry;
 import com.rockyshen.core.register.RegistryFactory;
@@ -12,6 +14,9 @@ import com.rockyshen.core.server.VertxHttpServer;
 import com.rockyshen.core.server.tcp.VertxTcpServer;
 import com.rockyshen.provider.impl.UserServiceImpl;
 import com.rockyshen.service.UserService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author rockyshen
@@ -24,41 +29,50 @@ import com.rockyshen.service.UserService;
  */
 public class CoreProviderExample {
     public static void main(String[] args) {
-        RpcApplication.init();
+        // 简化至ProviderBootstrap类中
+//        RpcApplication.init();
+//
+//        // 本地注册器  接口名 = 实现类
+//        String serviceName = UserService.class.getName();
+//        // 1、将接口名 = 实现类 加入LocalRegister
+//        LocalRegister.register(serviceName, UserServiceImpl.class);
+//
+//        // 加入注册中心
+//        RpcConfig rpcConfig = RpcApplication.getRpcConfig();
+//        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
+//        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
+//        /** provider端，如果显式调用registry.init的话，就会覆盖RpcApplication.init的
+//         * 重新调用的话，RegistryFactory会在第一次init时生成的对象，存在instanceCache这个Map中；
+//         * 第二次直接取，对象是同一个！
+//         */
+//        registry.init(registryConfig);
+//        ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();
+//        serviceMetaInfo.setServiceName(serviceName);
+//        serviceMetaInfo.setServiceHost(rpcConfig.getServerHost());
+//        serviceMetaInfo.setServicePort(rpcConfig.getServerPort());
+//
+//        try {
+//            // 由于register里的client和KVClient都是null，所以这里报空指针异常
+//            registry.register(serviceMetaInfo);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        // V1 基于Http启动web服务器
+////        HttpServer httpServer = new VertxHttpServer();
+//        // 端口从RpcConfig对象上动态取！
+////        httpServer.doStart(rpcConfig.getServerPort());
+//
+//        // V2 基于TCP，启动TCP服务端
+//        VertxTcpServer vertxTcpServer = new VertxTcpServer();
+//        vertxTcpServer.doStart(rpcConfig.getServerPort());
 
-        // 本地注册器  接口名 = 实现类
-        String serviceName = UserService.class.getName();
-        // 1、将接口名 = 实现类 加入LocalRegister
-        LocalRegister.register(serviceName, UserServiceImpl.class);
+        // 1、定义好serviceRegisterInfoList
+        List<ServiceRegisterInfo<?>> serviceRegisterInfoList = new ArrayList<>();
+        ServiceRegisterInfo serviceRegisterInfo = new ServiceRegisterInfo(UserService.class.getName(), UserServiceImpl.class);
+        serviceRegisterInfoList.add(serviceRegisterInfo);
 
-        // 加入注册中心
-        RpcConfig rpcConfig = RpcApplication.getRpcConfig();
-        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
-        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
-        /** provider端，如果显式调用registry.init的话，就会覆盖RpcApplication.init的
-         * 重新调用的话，RegistryFactory会在第一次init时生成的对象，存在instanceCache这个Map中；
-         * 第二次直接取，对象是同一个！
-         */
-        registry.init(registryConfig);
-        ServiceMetaInfo serviceMetaInfo = new ServiceMetaInfo();
-        serviceMetaInfo.setServiceName(serviceName);
-        serviceMetaInfo.setServiceHost(rpcConfig.getServerHost());
-        serviceMetaInfo.setServicePort(rpcConfig.getServerPort());
-
-        try {
-            // 由于register里的client和KVClient都是null，所以这里报空指针异常
-            registry.register(serviceMetaInfo);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        // V1 基于Http启动web服务器
-//        HttpServer httpServer = new VertxHttpServer();
-        // 端口从RpcConfig对象上动态取！
-//        httpServer.doStart(rpcConfig.getServerPort());
-
-        // V2 基于TCP，启动TCP服务端
-        VertxTcpServer vertxTcpServer = new VertxTcpServer();
-        vertxTcpServer.doStart(rpcConfig.getServerPort());
+        // 2、ProviderBootstrap.init()即可
+        ProviderBootstrap.init(serviceRegisterInfoList);
     }
 }

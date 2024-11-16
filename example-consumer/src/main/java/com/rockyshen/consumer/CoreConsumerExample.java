@@ -1,6 +1,7 @@
 package com.rockyshen.consumer;
 
 import com.rockyshen.core.RpcApplication;
+import com.rockyshen.core.bootstrap.ConsumerBootstrap;
 import com.rockyshen.core.config.RpcConfig;
 import com.rockyshen.core.proxy.ServiceProxyFactory;
 import com.rockyshen.core.register.Registry;
@@ -23,13 +24,13 @@ public class CoreConsumerExample {
 //        System.out.println(rpc);
 
         // 不管是consumer还是provider，都要执行RpcApplication的初始化
-        RpcApplication.init();
+//        RpcApplication.init();
+        ConsumerBootstrap.init();
 
         User user = new User();
         user.setName("rockyshen");
 
         UserService userService = ServiceProxyFactory.getProxy(UserService.class);
-
         User newUser = userService.getUser(user);     // 第一次查注册中心
 //        User newUser2 = userService.getUser(user);    // 第二次查缓存
 //        User newUser3 = userService.getUser(user);     // 第三次下线provider
