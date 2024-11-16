@@ -8,6 +8,8 @@ import com.rockyshen.core.RpcApplication;
 import com.rockyshen.core.config.RpcConfig;
 import com.rockyshen.core.fault.retry.RetryStrategy;
 import com.rockyshen.core.fault.retry.RetryStrategyFactory;
+import com.rockyshen.core.fault.tolerent.TolerantStrategy;
+import com.rockyshen.core.fault.tolerent.TolerantStrategyFactory;
 import com.rockyshen.core.model.RpcRequest;
 import com.rockyshen.core.model.RpcResponse;
 import com.rockyshen.core.model.ServiceMetaInfo;
@@ -78,10 +80,17 @@ public class ServiceProxy implements InvocationHandler {
 
             // V2，基于TCP、自定义的协议发送代理服务，抽取到VertxTcpClient中
             // 增加重试机制
-            RetryStrategy retryStrategy =RetryStrategyFactory.getInstance(rpcConfig.getRetryStrategy());
-            RpcResponse rpcResponse = retryStrategy.doRetry( ()->
-                VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo)
-            );
+            // 增加容错机制
+            RpcResponse rpcResponse = null;
+            try {
+                RetryStrategy retryStrategy =RetryStrategyFactory.getInstance(rpcConfig.getRetryStrategy());
+                rpcResponse = retryStrategy.doRetry( ()->
+                    VertxTcpClient.doRequest(rpcRequest, selectedServiceMetaInfo)
+                );
+            } catch (Exception e) {
+                TolerantStrategy tolerantStrategy = TolerantStrategyFactory.getInstance(rpcConfig.getTolerantStrategy());
+                rpcResponse = tolerantStrategy.doTolerant(null, e);
+            }
             return rpcResponse.getData();
 
         } catch (IOException e) {

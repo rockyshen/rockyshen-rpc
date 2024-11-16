@@ -1,0 +1,4 @@
+failBack=com.rockyshen.core.fault.tolerent.FailBackTolerantStrategy
+failFast=com.rockyshen.core.fault.tolerent.FailFastTolerantStrategy
+failOver=com.rockyshen.core.fault.tolerent.FailOverTolerantStrategy
+failSafe=com.rockyshen.core.fault.tolerent.FailSafeTolerantStrategy

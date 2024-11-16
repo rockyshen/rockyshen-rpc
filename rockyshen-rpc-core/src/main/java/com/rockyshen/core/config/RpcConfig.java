@@ -33,6 +33,9 @@ public class RpcConfig {
     // 重试策略
     private String retryStrategy = "no";
 
+    // 容错策略
+    private String tolerantStrategy = "failFast";
+
     public boolean isMock(){
         if(mock){
             return true;
